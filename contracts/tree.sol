@@ -9,13 +9,18 @@ them?
 pragma solidity ^0.4.13;
 
 import './TrialCoin.sol';
+import "github.com/Arachnid/solidity-stringutils/strings.sol";
 contract Tree {
+
+    using strings for *;
     
     struct Distributor {
         address referrer;
         address distributor_add;
         bool isBanned;
         bool isInit;
+        string disId;
+        bytes32 childrenNo;
     }
     
     struct File {
@@ -31,6 +36,8 @@ contract Tree {
 
     //distrib map to check for bans
     mapping(address => Distributor) distributorMap;
+    mapping(bytes32 => bool) outOfFunds;
+    mapping(bytes32 => mapping(bytes32 => mapping(address => bool))) payed;
     address public owner;
 
     //the amount of funds attached to a contract that triggers a lowfund event
@@ -53,6 +60,8 @@ contract Tree {
     event lowFunds(bytes32 id);
 
     event noFunds(bytes32 id);
+
+    event checkForPayment(string disId);
     
     public Tree(uint256 rate, uint256 lowFundCap){
 
@@ -63,7 +72,7 @@ contract Tree {
         
     }
     
-    function addFile(bytes32 id, string link, uint256 startBalance, address original_distributor) payable onlyOwner isUnique(id) {
+    function addFile(bytes32 id, string link, address original_distributor) payable onlyOwner isUnique(id) {
         // msg.sender is the committer
         // e.g. BBC
 
@@ -72,7 +81,7 @@ contract Tree {
         file.link = link;
         file.committer = msg.sender;
         file.exists = true;
-        file.balance = startBalance;
+        file.balance = msg.value;*coinRate;
 
         //setup distributor info
         Distributor distributor;
@@ -80,6 +89,8 @@ contract Tree {
         distributor.distributor_add = original_distributor;
         distributor.isBanned = false;
         distributor.isInit = true;
+        distributor.disId = "0";
+        distributor.childrenNo = 0;
 
         distributorMap[original_distributor] = distributor;
         //this might be problematic if you want original_distributor to be dynamic
@@ -99,29 +110,40 @@ contract Tree {
         
     }
 
-    //this is called by the person receiving the file to host.
-    function addDistributor(bytes32 id, address inviter) external returns(bool){
+    //this is called by the person who is already a distributor
+    function addDistributor(bytes32 id, address invitee) external returns(bool){
 
-        require(distributorMap[msg.sender].isInit);
+        require(distributorMap[invitee].isBanned != false);
 
-        require(distributorMap[inviter].isBanned == false);
+        require(distributorMap[invitee].isInit != true);
 
 
-        if(files[id].balance >=1){
+        if(outOfFunds[id] != true){
 
             Distributor distributor;
-            distributor.referrer = inviter;
-            distributor.distributor_add = msg.sender;
+            distributor.referrer = msg.sender;
+            distributor.distributor_add = invitee;
             distributor.isBanned = false;
             distributor.isInit = true;
 
-            distributorMap[distributor] = msg.sender;
+            distributorMap[msg.sender].childrenNo = distributorMap[msg.sender].childrenNo + 1;
+
+            distributor.childrenNo = 0;
+
+            string memory childrenNoString = bytes32ToString(distributorMap[msg.sender].childrenNo);
+
+            distributor.disId = distributorMap[msg.sender].disId.toSlice().concat(childrenNoString);
+
+            distributorMap[invitee] = distributor;
 
             distributors.push(distributor);
-            files[id].balance = files[id].balance -1;
+
+            //files[id].balance = files[id].balance -1;
 
             //could update this to draw from a finite pool set by contract creator
-            token.mint(inviter, 1);
+            //token.mint(inviter, 1);
+
+            checkForPayment(distributor.disId);
 
             return true;
         }
@@ -131,6 +153,32 @@ contract Tree {
             return false;
         }
 
+    }
+
+
+    function makePayment(bytes32 fileId, string disId) external returns(bool){
+
+        require(payed[fileId][disId][msg.sender] != true);
+
+        string compare = disId.toSlice().find(distributorMap[msg.sender].disId.toSlice());
+
+        if(equals(compare.toSlice(),disId.toSlice())){
+
+            if(files[fileId].balance >=1){
+
+                files[fileId].balance = files[fileId].balance -1;
+
+                token.mint(msg.sender, 1);
+
+                payed[fileId][disId][msg.sender] = true;
+
+            }
+
+            else{
+                outOfFunds[fileId] = true;
+            }
+
+        }
     }
     
     // Called by the end user
@@ -166,5 +214,21 @@ contract Tree {
 
         distributorMap[distrib].isBanned = true;
         
+    }
+
+    function getDisId(address distrib) external returns(string){
+        return distributorMap[distrib].disId;
+    }
+
+    function bytes32ToString (bytes32 data) internal returns (string) {
+        bytes memory bytesString = new bytes(32);
+        for (uint j=0; j<32; j++) {
+            byte char = byte(bytes32(uint(data) * 2 ** (8 * j)));
+            if (char != 0) {
+                bytesString[j] = char;
+        }
+            }
+
+        return string(bytesString);
     }
 }
