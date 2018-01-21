@@ -9,25 +9,25 @@ them?
 pragma solidity ^0.4.13;
 
 import './TrialCoin.sol';
-import "github.com/Arachnid/solidity-stringutils/strings.sol";
+import "github.com/Arachnid/solidity-stringutils/strings.sol"; //gives you the ability to do string manipulations
 contract Tree {
 
     using strings for *;
     
     struct Distributor {
-        address referrer;
-        address distributor_add;
+        address referrer; //person who introduced you to the network
+        address distributor_add; //your address
         bool isBanned;
-        bool isInit;
-        string disId;
-        bytes32 childrenNo;
+        bool isInit; //are you initialised
+        string disId; //your id, calculated from your height in the tree and your branch no starting from the left going right
+        bytes32 childrenNo; //how many children you have
     }
     
     struct File {
-        string link; // TODO: Decide on file hosting: where, how etc. IPFS?
-        address committer;
-        Distributor[] public distributors;
-        boolean exists;
+        string link; // ipfs hash
+        address committer; //file creator address
+        Distributor[] public distributors; //all the dstrubutors of this file
+        boolean exists; 
         uint256 balance;
     }
     
@@ -37,7 +37,7 @@ contract Tree {
     //distrib map to check for bans
     mapping(address => Distributor) distributorMap;
     mapping(bytes32 => bool) outOfFunds;
-    mapping(bytes32 => mapping(bytes32 => mapping(address => bool))) payed;
+    mapping(bytes32 => mapping(bytes32 => mapping(address => bool))) payed; //wether a distributor has been payed yet for a given file.
     address public owner;
 
     //the amount of funds attached to a contract that triggers a lowfund event
@@ -117,7 +117,7 @@ contract Tree {
 
         require(distributorMap[invitee].isInit != true);
 
-
+        //if the file has associated funds hen set up a new distributor profile
         if(outOfFunds[id] != true){
 
             Distributor distributor;
@@ -130,9 +130,9 @@ contract Tree {
 
             distributor.childrenNo = 0;
 
-            string memory childrenNoString = bytes32ToString(distributorMap[msg.sender].childrenNo);
+            string memory childrenNoString = bytes32ToString(distributorMap[msg.sender].childrenNo); //create a string that contains callers childrenNo
 
-            distributor.disId = distributorMap[msg.sender].disId.toSlice().concat(childrenNoString);
+            distributor.disId = distributorMap[msg.sender].disId.toSlice().concat(childrenNoString); //the new distributors id is the old distributors id with their childrenNo on the end.
 
             distributorMap[invitee] = distributor;
 
@@ -160,9 +160,9 @@ contract Tree {
 
         require(payed[fileId][disId][msg.sender] != true);
 
-        string compare = disId.toSlice().find(distributorMap[msg.sender].disId.toSlice());
+        string compare = disId.toSlice().find(distributorMap[msg.sender].disId.toSlice()); //match the disId of the claimant with the disId of the person a child/they signed up
 
-        if(equals(compare.toSlice(),disId.toSlice())){
+        if(equals(compare.toSlice(),disId.toSlice())){ //if there is a match then the claimant must have the new distributor as a child and they can be paid
 
             if(files[fileId].balance >=1){
 
@@ -170,7 +170,7 @@ contract Tree {
 
                 token.mint(msg.sender, 1);
 
-                payed[fileId][disId][msg.sender] = true;
+                payed[fileId][disId][msg.sender] = true; //they have now been paid so no more payments
 
             }
 
@@ -199,7 +199,7 @@ contract Tree {
             lowFunds(id);
         }
 
-        return  files[id].link;
+        return  files[id].link; //return ipfs hash
 
     }
 
@@ -220,7 +220,7 @@ contract Tree {
         return distributorMap[distrib].disId;
     }
 
-    function bytes32ToString (bytes32 data) internal returns (string) {
+    function bytes32ToString (bytes32 data) internal returns (string) { //creates string from int
         bytes memory bytesString = new bytes(32);
         for (uint j=0; j<32; j++) {
             byte char = byte(bytes32(uint(data) * 2 ** (8 * j)));
