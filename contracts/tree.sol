@@ -11,7 +11,7 @@ pragma solidity ^0.4.13;
 //1 instance of the smart contract per corporation/group that uses it. So the smart contract keeps track of all file distributors for that corporation/group.
 
 import './TrialCoin.sol';
-import "github.com/Arachnid/solidity-stringutils/strings.sol"; //gives you the ability to do string manipulations
+import "./strings.sol"; //gives you the ability to do string manipulations
 contract Tree {
 
     using strings for *;
@@ -29,18 +29,18 @@ contract Tree {
     struct File {
         string link; // ipfs hash
         address committer; //file creator address
-        Distributor[] public distributors; //all the dstrubutors of this file
-        boolean exists; 
+        Distributor[] distributors; //all the dstrubutors of this file
+        bool exists; 
         uint256 balance; //This is the credit that's left for this file. A file can only be distributed as long as credit remains for it. Each time it gets distributed, the credit decreases. This credit can be topped up.
     }
     
     // hash-map where bytes32 = id of file
-    mapping(bytes32 => File) public files;
+    mapping(bytes32 => File) files;
 
     //distrib map to check for bans
     mapping(address => Distributor) distributorMap;
     mapping(bytes32 => bool) outOfFunds;
-    mapping(bytes32 => mapping(bytes32 => mapping(address => bool))) payed; //wether a distributor has been payed yet for a given file.
+    mapping(bytes32 => mapping(address => bool)) payed; //wether a distributor has been payed yet for a given file.
     address public owner;
 
     //the amount of funds attached to a contract that triggers a lowfund event
@@ -50,14 +50,14 @@ contract Tree {
 
     TrialCoin token;
     
-    modifier isUnique(id) {
+    modifier isUnique(bytes32 id) {
         require(!files[id].exists);
-        __;
+        _;
     }
     
-    modifier onlyOwner() {
+    modifier onlyOwner{
         require(owner == msg.sender);
-        __;
+        _;
     }
     
     event lowFunds(bytes32 id);
@@ -66,7 +66,7 @@ contract Tree {
 
     event checkForPayment(string disId);
     
-    public Tree(uint256 rate, uint256 lowFundCap){
+    function Tree(uint256 rate, uint256 lowFundCap){
 
         owner = msg.sender;
         coinRate = rate;
@@ -75,25 +75,29 @@ contract Tree {
         
     }
     
-    function addFile(bytes32 id, string link, address original_distributor) payable onlyOwner isUnique(id) {
+    function addFile(bytes32 id, string link, address original_distributor) 
+    payable 
+    onlyOwner
+    isUnique(id) 
+    {
         // msg.sender is the committer
         // e.g. BBC
 
         //setup file info
-        File file;
+        File storage file;
         file.link = link;
         file.committer = msg.sender;
         file.exists = true;
-        file.balance = msg.value;*coinRate;
+        file.balance = msg.value*coinRate;
 
         //setup distributor info
-        Distributor distributor;
+        Distributor storage distributor;
         distributor.referrer = msg.sender;
         distributor.distributor_add = original_distributor;
         distributor.isBanned = false;
         distributor.isInit = true;
         distributor.disId = "0";
-        distributor.childrenNo = 0;
+        distributor.childrenNo = bytes32(0);
 
         distributorMap[original_distributor] = distributor;
         //this might be problematic if you want original_distributor to be dynamic
@@ -107,7 +111,7 @@ contract Tree {
     //The organisation/group that owns the file and hence this contract can increase the balance/credit for a file so it can be distributed more.
     function topUp(bytes32 id) external payable onlyOwner{
         //not sure what to do with the ether that amasses on the contract
-        topUpAmt = msg.value*coinRate;
+        uint256 topUpAmt = msg.value*coinRate;
 
         files[id].balance = files[id].balance + topUpAmt;        
     }
@@ -123,23 +127,23 @@ contract Tree {
         //if the file has associated funds hen set up a new distributor profile
         if(outOfFunds[id] != true){
 
-            Distributor distributor;
+            Distributor storage distributor;
             distributor.referrer = msg.sender;
             distributor.distributor_add = invitee;
             distributor.isBanned = false;
             distributor.isInit = true;
 
-            distributorMap[msg.sender].childrenNo = distributorMap[msg.sender].childrenNo + 1;
+            distributorMap[msg.sender].childrenNo = bytes32(uint(distributorMap[msg.sender].childrenNo) + 1);
 
-            distributor.childrenNo = 0;
+            distributor.childrenNo = bytes32(0);
 
             string memory childrenNoString = bytes32ToString(distributorMap[msg.sender].childrenNo); //create a string that contains callers childrenNo
 
-            distributor.disId = distributorMap[msg.sender].disId.toSlice().concat(childrenNoString); //the new distributors id is the old distributors id with their childrenNo on the end.
+            distributor.disId = distributorMap[msg.sender].disId.toSlice().concat(childrenNoString.toSlice()); //the new distributors id is the old distributors id with their childrenNo on the end.
 
             distributorMap[invitee] = distributor;
 
-            distributors.push(distributor);
+            files[id].distributors.push(distributor);
 
             //files[id].balance = files[id].balance -1;
 
@@ -160,12 +164,16 @@ contract Tree {
 
 
     function makePayment(bytes32 fileId, string disId) external returns(bool){
+        //needs update for multiple files
+        require(payed[fileId][msg.sender] != true);
 
-        require(payed[fileId][disId][msg.sender] != true);
+        //match the disId of the claimant with the disId of the person a child/they signed up
+        //if there is a match then the claimant must have the new distributor as a child and they can be paid
 
-        string compare = disId.toSlice().find(distributorMap[msg.sender].disId.toSlice()); //match the disId of the claimant with the disId of the person a child/they signed up
+        //slice memory compare = disId.toSlice().find(distributorMap[msg.sender].disId.toSlice()); 
 
-        if(equals(compare.toSlice(),disId.toSlice())){ //if there is a match then the claimant must have the new distributor as a child and they can be paid
+        bool check = strings.equals(disId.toSlice().find(distributorMap[msg.sender].disId.toSlice()),disId.toSlice());
+        if(check){ 
 
             if(files[fileId].balance >=1){
 
@@ -173,7 +181,7 @@ contract Tree {
 
                 token.mint(msg.sender, 1);
 
-                payed[fileId][disId][msg.sender] = true; //they have now been paid so no more payments
+                payed[fileId][msg.sender] = true; //they have now been paid so no more payments
 
             }
 
@@ -232,4 +240,5 @@ contract Tree {
 
         return string(bytesString);
     }
+
 }
