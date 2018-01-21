@@ -8,6 +8,8 @@ them?
 **/
 pragma solidity ^0.4.13;
 
+//1 instance of the smart contract per corporation/group that uses it. So the smart contract keeps track of all file distributors for that corporation/group.
+
 import './TrialCoin.sol';
 import "github.com/Arachnid/solidity-stringutils/strings.sol"; //gives you the ability to do string manipulations
 contract Tree {
@@ -22,13 +24,14 @@ contract Tree {
         string disId; //your id, calculated from your height in the tree and your branch no starting from the left going right
         bytes32 childrenNo; //how many children you have
     }
+
     
     struct File {
         string link; // ipfs hash
         address committer; //file creator address
         Distributor[] public distributors; //all the dstrubutors of this file
         boolean exists; 
-        uint256 balance;
+        uint256 balance; //This is the credit that's left for this file. A file can only be distributed as long as credit remains for it. Each time it gets distributed, the credit decreases. This credit can be topped up.
     }
     
     // hash-map where bytes32 = id of file
@@ -101,16 +104,16 @@ contract Tree {
         
     }
 
+    //The organisation/group that owns the file and hence this contract can increase the balance/credit for a file so it can be distributed more.
     function topUp(bytes32 id) external payable onlyOwner{
         //not sure what to do with the ether that amasses on the contract
         topUpAmt = msg.value*coinRate;
 
-        files[id].balance = files[id].balance + topUpAmt;
-
-        
+        files[id].balance = files[id].balance + topUpAmt;        
     }
 
-    //this is called by the person who is already a distributor
+    //This is called by a person who is already a distributor. It allows a current distributor to add a new one.
+    //Also implements functionality allowing us to find the id of the inviter given an invitee.
     function addDistributor(bytes32 id, address invitee) external returns(bool){
 
         require(distributorMap[invitee].isBanned != false);
@@ -177,14 +180,13 @@ contract Tree {
             else{
                 outOfFunds[fileId] = true;
             }
-
         }
     }
     
     // Called by the end user
     function getFile(bytes32 id) external returns(string){
-        //TODO: Who is the distributor?
-        //TODO: Does the file have enough funds to pay the chain of distribution?
+        //TODO: Who is the distributor? 
+        //TODO: Does the file have enough funds to pay the chain of distribution? 
         //TODO: If so: Just do it! Move the funds, pay the distributors and deliver the file...
        
         //not sold on this, doing a for loop over distributors is pretty infeasible in the long term
@@ -206,7 +208,6 @@ contract Tree {
     function createTokenContract() internal returns(TrialCoin){
 
         return new TrialCoin();
-
 
     }
     
