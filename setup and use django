@@ -11,10 +11,10 @@ SET UP DJANGO
 
 5.)cd scripts
 
-6.) activate
+6.) type activate
 
 
-7.) cd to github repo
+7.) type pip install django and then cd to github repo folder
 
 8.) cd webapp\src
 
