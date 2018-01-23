@@ -1,0 +1,29 @@
+SET UP DJANGO
+
+
+1.) make sure python is installed
+
+2.) pip install virtualenv
+
+3.) mkdir Django_Venv, cd Django_Venv
+
+4.) virtualenv .
+
+5.)cd scripts
+
+6.) activate
+
+
+7.) cd to github repo
+
+8.) cd webapp\src
+
+
+9.) python manage.py runserver
+
+
+10.) on browser goto 127.0.0.1:8000
+
+
+
+congrats!
