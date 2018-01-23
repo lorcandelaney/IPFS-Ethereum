@@ -35,7 +35,7 @@ contract Tree {
         //distrib map to check for bans
         mapping(address => Distributor) distributorMap;
 
-        mapping(bytes32 => mapping(address => bool)) payed;
+        mapping(string => mapping(address => bool)) payed;
     }
     
     // hash-map where bytes32 = id of file

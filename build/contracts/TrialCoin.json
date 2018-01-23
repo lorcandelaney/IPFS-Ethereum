@@ -393,7 +393,7 @@
       "absolutePath": "/C/Users/Flinn Dolman/Documents/Del-stuff/contracts/TrialCoin.sol",
       "exportedSymbols": {
         "TrialCoin": [
-          625
+          668
         ]
       }
     },
@@ -407,49 +407,49 @@
             ".13"
           ]
         },
-        "id": 612,
+        "id": 655,
         "name": "PragmaDirective",
         "src": "0:24:1"
       },
       {
         "attributes": {
-          "SourceUnit": 2608,
+          "SourceUnit": 2651,
           "absolutePath": "zeppelin-solidity/contracts/token/MintableToken.sol",
           "file": "zeppelin-solidity/contracts/token/MintableToken.sol",
-          "scope": 626,
+          "scope": 669,
           "symbolAliases": [
             null
           ],
           "unitAlias": ""
         },
-        "id": 613,
+        "id": 656,
         "name": "ImportDirective",
         "src": "28:61:1"
       },
       {
         "attributes": {
           "contractDependencies": [
-            2354,
-            2440,
+            2397,
             2483,
-            2512,
-            2607,
-            2853
+            2526,
+            2555,
+            2650,
+            2896
           ],
           "contractKind": "contract",
           "documentation": null,
           "fullyImplemented": true,
           "linearizedBaseContracts": [
-            625,
-            2607,
-            2354,
-            2853,
-            2440,
+            668,
+            2650,
+            2397,
+            2896,
             2483,
-            2512
+            2526,
+            2555
           ],
           "name": "TrialCoin",
-          "scope": 626
+          "scope": 669
         },
         "children": [
           {
@@ -463,15 +463,15 @@
                 "attributes": {
                   "contractScope": null,
                   "name": "MintableToken",
-                  "referencedDeclaration": 2607,
+                  "referencedDeclaration": 2650,
                   "type": "contract MintableToken"
                 },
-                "id": 614,
+                "id": 657,
                 "name": "UserDefinedTypeName",
                 "src": "115:13:1"
               }
             ],
-            "id": 615,
+            "id": 658,
             "name": "InheritanceSpecifier",
             "src": "115:13:1"
           },
@@ -479,7 +479,7 @@
             "attributes": {
               "constant": false,
               "name": "name",
-              "scope": 625,
+              "scope": 668,
               "stateVariable": true,
               "storageLocation": "default",
               "type": "string storage ref",
@@ -491,7 +491,7 @@
                   "name": "string",
                   "type": "string storage pointer"
                 },
-                "id": 616,
+                "id": 659,
                 "name": "ElementaryTypeName",
                 "src": "134:6:1"
               },
@@ -508,12 +508,12 @@
                   "type": "literal_string \"TRIAL COIN\"",
                   "value": "TRIAL COIN"
                 },
-                "id": 617,
+                "id": 660,
                 "name": "Literal",
                 "src": "155:12:1"
               }
             ],
-            "id": 618,
+            "id": 661,
             "name": "VariableDeclaration",
             "src": "134:33:1"
           },
@@ -521,7 +521,7 @@
             "attributes": {
               "constant": false,
               "name": "symbol",
-              "scope": 625,
+              "scope": 668,
               "stateVariable": true,
               "storageLocation": "default",
               "type": "string storage ref",
@@ -533,7 +533,7 @@
                   "name": "string",
                   "type": "string storage pointer"
                 },
-                "id": 619,
+                "id": 662,
                 "name": "ElementaryTypeName",
                 "src": "172:6:1"
               },
@@ -550,12 +550,12 @@
                   "type": "literal_string \"TRI\"",
                   "value": "TRI"
                 },
-                "id": 620,
+                "id": 663,
                 "name": "Literal",
                 "src": "195:5:1"
               }
             ],
-            "id": 621,
+            "id": 664,
             "name": "VariableDeclaration",
             "src": "172:28:1"
           },
@@ -563,7 +563,7 @@
             "attributes": {
               "constant": false,
               "name": "decimals",
-              "scope": 625,
+              "scope": 668,
               "stateVariable": true,
               "storageLocation": "default",
               "type": "uint8",
@@ -575,7 +575,7 @@
                   "name": "uint8",
                   "type": "uint8"
                 },
-                "id": 622,
+                "id": 665,
                 "name": "ElementaryTypeName",
                 "src": "205:5:1"
               },
@@ -592,22 +592,22 @@
                   "type": "int_const 18",
                   "value": "18"
                 },
-                "id": 623,
+                "id": 666,
                 "name": "Literal",
                 "src": "229:2:1"
               }
             ],
-            "id": 624,
+            "id": 667,
             "name": "VariableDeclaration",
             "src": "205:26:1"
           }
         ],
-        "id": 625,
+        "id": 668,
         "name": "ContractDefinition",
         "src": "93:142:1"
       }
     ],
-    "id": 626,
+    "id": 669,
     "name": "SourceUnit",
     "src": "0:235:1"
   },
@@ -617,5 +617,5 @@
   },
   "networks": {},
   "schemaVersion": "1.0.1",
-  "updatedAt": "2018-01-21T20:08:00.834Z"
+  "updatedAt": "2018-01-23T15:46:57.333Z"
 }
